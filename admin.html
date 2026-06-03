@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Central Command - Admin Panel</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-[#0b0f19] text-slate-200 min-h-screen p-4 md:p-8">
+    
+    <div id="admin-lockscreen" class="fixed inset-0 bg-[#0b0f19] z-50 flex items-center justify-center">
+        <p class="text-zinc-500 font-mono text-sm animate-pulse">Authenticating Administration Portal...</p>
+    </div>
+
+    <div class="max-w-4xl mx-auto space-y-6">
+        
+        <div class="flex justify-between items-center border-b border-zinc-800 pb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-white tracking-wide">NEXUS COMMAND CENTER</h1>
+                <p class="text-xs text-zinc-400">Verifications Desk & User Control Registry</p>
+            </div>
+            <span class="text-xs bg-red-950/50 border border-red-800 px-3 py-1 rounded text-red-400 font-bold">ADMIN ACTIVE</span>
+        </div>
+
+        <!-- NEW SPECIFIC USER MESSAGING DIRECT SYSTEM -->
+        <div class="bg-[#111625] border border-zinc-800 rounded-xl p-4">
+            <h3 class="text-sm font-bold text-white mb-2">Send Notification Message to Specific User</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <input type="text" id="specific-user-id" placeholder="Target User ID (e.g. NX-7739)" class="bg-zinc-900 border border-zinc-700 text-sm px-3 py-2 rounded-lg outline-none text-white">
+                <input type="text" id="specific-msg" placeholder="Type exclusive message..." class="bg-zinc-900 border border-zinc-700 text-sm px-3 py-2 rounded-lg outline-none text-white sm:col-span-2">
+            </div>
+            <button onclick="sendTargetedMessage()" class="mt-3 bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-lg text-xs transition cursor-pointer">
+                Deliver Direct Message
+            </button>
+        </div>
+
+        <!-- UTR RECEIPT APPROVAL QUEUE -->
+        <div class="bg-[#111625] border border-zinc-800 rounded-xl p-5">
+            <h3 class="text-base font-bold text-white mb-3">Pending Verification Streams (UTR Checks)</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-zinc-800 text-zinc-400">
+                            <th class="p-2">User ID</th>
+                            <th class="p-2">Package Name</th>
+                            <th class="p-2">Price</th>
+                            <th class="p-2">UTR Reference</th>
+                            <th class="p-2 text-right">Action Desk</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-table-body" class="divide-y divide-zinc-800/60"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SAVED USERS DATABASE MANAGER -->
+        <div class="bg-[#111625] border border-zinc-800 rounded-xl p-5">
+            <h3 class="text-base font-bold text-white mb-3"><i class="fa-solid fa-users text-blue-400 mr-1"></i> Saved Users Database Registry</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-zinc-800 text-zinc-400">
+                            <th class="p-2">User ID</th>
+                            <th class="p-2">Wallet Balance</th>
+                            <th class="p-2">Daily Revenue Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody id="saved-users-body" class="divide-y divide-zinc-800/60"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // PASS GATING VERIFICATION
+        (function checkGatepass() {
+            const secretGateKey = "scam_op";
+            const inputPass = prompt("Enter Secret Admin Password Gate Token:");
+            
+            if (inputPass === secretGateKey) {
+                document.addEventListener("DOMContentLoaded", () => {
+                    const lock = document.getElementById('admin-lockscreen');
+                    if(lock) lock.style.display = 'none';
+                });
+            } else {
+                alert("Access Denied.");
+                window.location.href = "login.html";
+            }
+        })();
+
+        function renderAdminPanels() {
+            // Render UTR Queue
+            const body = document.getElementById('admin-table-body');
+            body.innerHTML = '';
+            let queue = JSON.parse(localStorage.getItem('admin_utr_queue') || '[]');
+
+            if(queue.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-zinc-500 italic">No incoming deposits pending confirmation.</td></tr>`;
+            } else {
+                queue.forEach((item, index) => {
+                    body.innerHTML += `
+                        <tr class="hover:bg-zinc-900/40">
+                            <td class="p-2 text-blue-400 font-mono font-bold">${item.userId}</td>
+                            <td class="p-2 text-zinc-300 font-medium">${item.packageName}</td>
+                            <td class="p-2 text-white font-semibold">₹${item.amount}</td>
+                            <td class="p-2 font-mono text-zinc-400">${item.utr}</td>
+                            <td class="p-2 text-right">
+                                <button onclick="approveRequest(${index})" class="bg-emerald-600 text-white font-bold px-2 py-1 rounded text-[11px] cursor-pointer">Approve</button>
+                                <button onclick="rejectRequest(${index})" class="bg-red-600 text-white font-bold px-2 py-1 rounded text-[11px] cursor-pointer">Deny</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // Render CRM Saved User Profiles
+            const usersBody = document.getElementById('saved-users-body');
+            usersBody.innerHTML = '';
+            let savedUsers = JSON.parse(localStorage.getItem('admin_crm_users') || '[]');
+
+            if(savedUsers.length === 0) {
+                usersBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-zinc-500 italic">No user records saved in database yet.</td></tr>`;
+            } else {
+                savedUsers.forEach(uid => {
+                    let bal = parseFloat(localStorage.getItem(`balance_${uid}`) || 0).toFixed(2);
+                    let activePacks = JSON.parse(localStorage.getItem(`packages_${uid}`) || '[]');
+                    let dailyRate = activePacks.reduce((acc, p) => acc + p.daily, 0);
+
+                    usersBody.innerHTML += `
+                        <tr class="hover:bg-zinc-900/40">
+                            <td class="p-2 font-mono text-blue-400 font-bold">${uid}</td>
+                            <td class="p-2 text-white font-semibold">₹${bal}</td>
+                            <td class="p-2 text-emerald-400 font-medium">₹${dailyRate}/day</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        function approveRequest(idx) {
+            let queue = JSON.parse(localStorage.getItem('admin_utr_queue') || '[]');
+            let record = queue[idx];
+
+            let currentBal = parseFloat(localStorage.getItem(`balance_${record.userId}`) || 0);
+            let currentRev = parseFloat(localStorage.getItem(`revenue_${record.userId}`) || 0);
+            let activePackages = JSON.parse(localStorage.getItem(`packages_${record.userId}`) || '[]');
+
+            // Rule 1: Instantly trigger day 1 package payout upon verification approval
+            currentBal += record.dailyRate;
+            currentRev += record.dailyRate;
+
+            // Push package tracking details into user profile storage
+            activePackages.push({
+                name: record.packageName,
+                daily: record.dailyRate,
+                lastPayoutDate: new Date().toDateString() // Sets current day as paid
+            });
+
+            localStorage.setItem(`balance_${record.userId}`, currentBal.toFixed(2));
+            localStorage.setItem(`revenue_${record.userId}`, currentRev.toFixed(2));
+            localStorage.setItem(`packages_${record.userId}`, JSON.stringify(activePackages));
+
+            // Save user to the admin dashboard customer CRM registry
+            let savedUsers = JSON.parse(localStorage.getItem('admin_crm_users') || '[]');
+            if(!savedUsers.includes(record.userId)) {
+                savedUsers.push(record.userId);
+                localStorage.setItem('admin_crm_users', JSON.stringify(savedUsers));
+            }
+
+            // Fire verification telegram alert modal popup trigger to user screen
+            localStorage.setItem(`popup_alert_${record.userId}`, "true");
+
+            // Purge item from queue
+            queue.splice(idx, 1);
+            localStorage.setItem('admin_utr_queue', JSON.stringify(queue));
+            
+            alert("Payment Verified! Balance updated and Telegram alert sent to user screen.");
+            renderAdminPanels();
+        }
+
+        function rejectRequest(idx) {
+            let queue = JSON.parse(localStorage.getItem('admin_utr_queue') || '[]');
+            queue.splice(idx, 1);
+            localStorage.setItem('admin_utr_queue', JSON.stringify(queue));
+            alert("Transaction Denied.");
+            renderAdminPanels();
+        }
+
+        function sendTargetedMessage() {
+            const uid = document.getElementById('specific-user-id').value.trim();
+            const msg = document.getElementById('specific-msg').value.trim();
+            if(!uid || !msg) { alert("Please complete all messaging data parameters."); return; }
+
+            localStorage.setItem(`notice_${uid}`, msg);
+            alert(`Custom message pushed explicitly to user screen profile: ${uid}`);
+            document.getElementById('specific-user-id').value = '';
+            document.getElementById('specific-msg').value = '';
+        }
+
+        window.onload = function() {
+            renderAdminPanels();
+        };
+    </script>
+</body>
+</html>
