@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus AI - Portal Access</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { 
+            background-color: #0b0f19; 
+            font-family: system-ui, -apple-system, sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
+        }
+        /* Hide scrollbars for layout optimization while maintaining operational capability */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="text-slate-200 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-[#111625] border border-zinc-800/80 rounded-2xl p-6 w-full max-w-sm text-center shadow-2xl">
+        
+        <div class="w-14 h-14 bg-blue-500/10 border border-blue-500/30 text-blue-400 text-2xl flex items-center justify-center rounded-full mx-auto mb-4">
+            <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        
+        <h2 class="text-2xl font-bold text-white tracking-tight">NEXUS AI</h2>
+        <p class="text-xs text-zinc-400 mt-1 mb-6 uppercase tracking-wider">Automatic Profit Dashboard</p>
+
+        <div class="space-y-4 text-left">
+            
+            <div>
+                <label class="block text-xs font-semibold text-zinc-400 mb-1">Mobile Number</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-2.5 text-zinc-500 text-sm font-medium">+91</span>
+                    <input type="tel" id="login-mobile" placeholder="Enter 10-digit number" maxlength="10" 
+                           class="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-12 pr-3 py-2.5 text-sm text-white outline-none focus:border-blue-500 font-mono tracking-wide">
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <label class="block text-xs font-semibold text-zinc-400">Password</label>
+                    <button onclick="toggleMode()" id="mode-toggle-btn" class="text-[11px] font-bold text-blue-500 hover:text-blue-400 cursor-pointer transition">
+                        New Account
+                    </button>
+                </div>
+                <div class="relative">
+                    <span class="absolute left-3 top-3 text-zinc-500 text-xs">
+                        <i class="fa-solid fa-lock"></i>
+                    </span>
+                    <input type="password" id="login-password" placeholder="••••••••" 
+                           class="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white outline-none focus:border-blue-500 tracking-widest">
+                </div>
+            </div>
+
+            <div class="flex items-start gap-2.5 pt-1">
+                <input type="checkbox" id="policy-checkbox" class="w-4 h-4 mt-0.5 rounded border-zinc-800 bg-zinc-950 text-blue-600 focus:ring-0 outline-none cursor-pointer">
+                <label for="policy-checkbox" class="text-[11px] text-zinc-400 leading-tight select-none">
+                    I acknowledge and agree to the platform's 
+                    <button onclick="openPolicyModal()" class="text-blue-500 hover:underline font-medium inline cursor-pointer">Terms of Service & Privacy Policy</button>.
+                </label>
+            </div>
+
+            <button onclick="handleSubmit()" id="submit-btn" 
+                    class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl text-xs tracking-wider uppercase transition shadow-md shadow-blue-950/50 mt-2 cursor-pointer">
+                Sign In / Register
+            </button>
+
+        </div>
+
+    </div>
+
+    <div id="policy-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-[#111625] border border-zinc-800 rounded-2xl p-5 w-full max-w-sm text-left shadow-2xl flex flex-col max-h-[85vh]">
+            
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3 mb-3">
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-contract text-blue-500"></i> Terms & Regulations
+                </h3>
+                <button onclick="closePolicyModal()" class="text-zinc-500 hover:text-white text-sm cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="overflow-y-auto pr-1 text-xs text-zinc-400 space-y-3 font-normal custom-scrollbar leading-relaxed">
+                <p class="text-white font-semibold">1. Operation Model Scope</p>
+                <p>Nexus AI Network operates an automated platform handling infrastructure nodes for distributed processing tasks. By checking the registration agreement, you acknowledge that node operations run dynamically based on storage state logic variables.</p>
+                
+                <p class="text-white font-semibold">2. Profile Security Responsibilities</p>
+                <p>Each access account context maps directly via device browser hardware vectors (`localStorage`). It remains your complete operational responsibility to preserve password parameter sequences against environmental credential disclosures.</p>
+                
+                <p class="text-white font-semibold">3. Yield & Balance Disclaimers</p>
+                <p>Any algorithmic outputs, processing estimates, and total generated yield indices shown within user interface modules represent automated node activities. Contract settlements fluctuate in correlation with master distribution grids.</p>
+                
+                <p class="text-white font-semibold">4. Withdrawal Processing Gateways</p>
+                <p>Consistent with internal account management guidelines, instant payouts unlock and process through UPI channels strictly when active balances surpass the system authorization trigger parameters of ₹5,000.</p>
+                
+                <p class="text-white font-semibold">5. Termination Protocols</p>
+                <p>The platform reserves complete administrative operational authority to terminate terminal sessions or freeze account arrays if invalid transactional structures or broken system integrity references are identified.</p>
+            </div>
+
+            <button onclick="closePolicyModal()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold py-2 rounded-xl transition mt-4 cursor-pointer text-center">
+                Acknowledge Guidelines
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let isSignUpMode = false;
+
+        /**
+         * Switches the modal dynamic visual inputs between existing user logins and database registrations
+         */
+        function toggleMode() {
+            const toggleBtn = document.getElementById("mode-toggle-btn");
+            const submitBtn = document.getElementById("submit-btn");
+            
+            isSignUpMode = !isSignUpMode;
+            
+            if (isSignUpMode) {
+                toggleBtn.innerText = "Existing Login";
+                submitBtn.innerText = "Create & Register Account";
+            } else {
+                toggleBtn.innerText = "New Account";
+                submitBtn.innerText = "Sign In / Register";
+            }
+        }
+
+        // Modal interface controllers
+        function openPolicyModal() { document.getElementById("policy-modal").classList.remove("hidden"); }
+        function closePolicyModal() { document.getElementById("policy-modal").classList.add("hidden"); }
+
+        /**
+         * Collects form inputs, matches parameters, prepares clean objects, and initializes user datasets
+         */
+        function handleSubmit() {
+            const mobileInput = document.getElementById("login-mobile").value.trim();
+            const passwordInput = document.getElementById("login-password").value.trim();
+            const policyCheckbox = document.getElementById("policy-checkbox");
+
+            // Enforcement check for Terms and Policies compliance
+            if (!policyCheckbox.checked) {
+                alert("You must agree to the Terms of Service & Privacy Policy to proceed.");
+                return;
+            }
+
+            // Verification layer check 1
+            if (mobileInput.length !== 10 || isNaN(mobileInput)) {
+                alert("Please enter a valid 10-digit mobile number.");
+                return;
+            }
+
+            // Verification layer check 2
+            if (passwordInput.length < 4) {
+                alert("Password must be at least 4 characters long.");
+                return;
+            }
+
+            // Standardize structured prefix layout for admin synchronization
+            const configuredUserId = `NX-${mobileInput}`;
+
+            if (isSignUpMode) {
+                // Fetch central dashboard registry table setup
+                let centralUserDatabase = [];
+                try {
+                    centralUserDatabase = JSON.parse(localStorage.getItem("admin_crm_users") || "[]");
+                } catch (e) {
+                    centralUserDatabase = [];
+                }
+
+                // Block overwrite processing if specific authorization variables exist
+                if (localStorage.getItem(`pwd_${configuredUserId}`)) {
+                    alert("This mobile number is already registered. Please sign in.");
+                    return;
+                }
+
+                // DATABASE STRUCTURE INITIALIZATION
+                localStorage.setItem(`pwd_${configuredUserId}`, passwordInput);
+                localStorage.setItem(`balance_${configuredUserId}`, "0.00");
+                localStorage.setItem(`revenue_${configuredUserId}`, "0.00");
+                localStorage.setItem(`packages_${configuredUserId}`, "[]");
+
+                // Safely update master user lookup queue for the admin panel search query
+                if (!centralUserDatabase.includes(configuredUserId)) {
+                    centralUserDatabase.push(configuredUserId);
+                    localStorage.setItem("admin_crm_users", JSON.stringify(centralUserDatabase));
+                }
+
+                // Authenticate current persistent workspace state variables
+                localStorage.setItem("active_user_id", configuredUserId);
+                
+                alert("Account successfully created and linked to Admin engine! Redirecting...");
+                window.location.href = "index.html";
+
+            } else {
+                // RUN AUTHENTICATION FOR SIGN IN
+                const storedPassword = localStorage.getItem(`pwd_${configuredUserId}`);
+
+                if (!storedPassword || storedPassword !== passwordInput) {
+                    alert("Invalid mobile credentials or layout match error.");
+                    return;
+                }
+
+                // Save active environment parameters and load the user app interface
+                localStorage.setItem("active_user_id", configuredUserId);
+                window.location.href = "index.html";
+            }
+        }
+    </script>
+</body>
+</html>
