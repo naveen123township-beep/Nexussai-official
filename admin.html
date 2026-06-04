@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Central Command - Admin Panel</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="db-sync.js"></script>
+</head>
+<body class="bg-[#0b0f19] text-slate-200 min-h-screen p-4 md:p-8">
+    
+    <div id="admin-lockscreen" class="fixed inset-0 bg-[#0b0f19] z-50 flex items-center justify-center">
+        <p class="text-zinc-500 font-mono text-sm animate-pulse">Authenticating Administration Portal...</p>
+    </div>
+
+    <div class="max-w-4xl mx-auto space-y-6">
+        
+        <div class="flex justify-between items-center border-b border-zinc-800 pb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-white tracking-wide">NEXUS COMMAND CENTER</h1>
+                <p class="text-xs text-zinc-400">Verifications Desk & User Control Registry</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="refreshAdminDataFromServer()" class="bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800 text-xs font-bold px-3 py-1.5 rounded transition cursor-pointer flex items-center gap-1">
+                    <i class="fa-solid fa-arrows-rotate"></i> Sync Cloud
+                </button>
+                <span class="text-xs bg-red-950/50 border border-red-800 px-3 py-1.5 rounded text-red-400 font-bold">ADMIN ACTIVE</span>
+            </div>
+        </div>
+
+        <div class="bg-[#111625] border border-zinc-800 rounded-xl p-4">
+            <h3 class="text-sm font-bold text-white mb-2">Send Global Updates / Broadcast Banner Messages</h3>
+            <div class="grid grid-cols-1 gap-3">
+                <input type="text" id="global-broadcast-msg" placeholder="Type banner alert message shown to ALL users..." class="bg-zinc-900 border border-zinc-700 text-sm px-3 py-2 rounded-lg outline-none text-white w-full">
+            </div>
+            <button onclick="sendGlobalBroadcast()" id="broadcast-submit-btn" class="mt-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-lg text-xs transition cursor-pointer">
+                Publish Global Broadcast
+            </button>
+        </div>
+
+        <div class="bg-[#111625] border border-zinc-800 rounded-xl p-4">
+            <h3 class="text-sm font-bold text-white mb-2">Send Notification Message to Specific User</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <input type="text" id="specific-user-id" placeholder="Target User ID (e.g. NX-7739)" class="bg-zinc-900 border border-zinc-700 text-sm px-3 py-2 rounded-lg outline-none text-white">
+                <input type="text" id="specific-msg" placeholder="Type exclusive message..." class="bg-zinc-900 border border-zinc-700 text-sm px-3 py-2 rounded-lg outline-none text-white sm:col-span-2">
+            </div>
+            <button onclick="sendTargetedMessage()" id="msg-submit-btn" class="mt-3 bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-lg text-xs transition cursor-pointer">
+                Deliver Direct Message
+            </button>
+        </div>
+
+        <div class="bg-[#111625] border border-zinc-800 rounded-xl p-4">
+            <h3 class="text-sm font-bold text-white mb-2">Manage User Wallet Balance Ledger</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-[11px] font-semibold text-zinc-400 mb-1">Target User ID</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="balance-user-id" placeholder="e.g., NX-7739" class="w-full bg-zinc-900 border border-zinc-700 text-sm px-3 py-2 rounded-lg outline-none text-white">
+                        <button onclick="checkUserBalance()" class="bg-zinc-800 hover:bg-zinc-700 text-white text-[11px] px-3 py-2 rounded-lg font-bold transition cursor-pointer shrink-0">Check</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-semibold text-zinc-400 mb-1">Add Wallet Balance (₹)</label>
+                    <input type="number" id="balance-amount" placeholder="e.g., 500" class="w-full bg-zinc-900 border border-zinc-700 text-sm px-3 py-2 rounded-lg outline-none text-white">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-semibold text-zinc-400 mb-1">Add Total Revenue (₹)</label>
+                    <input type="number" id="revenue-amount" placeholder="e.g., 500" class="w-full bg-zinc-900 border border-zinc-700 text-sm px-3 py-2 rounded-lg outline-none text-white">
+                </div>
+            </div>
+            <div id="balance-preview-box" class="hidden mt-2 p-2 bg-zinc-950/60 border border-zinc-800 rounded-lg text-xs font-mono">
+                Current State for <span id="preview-user" class="text-blue-400 font-bold">--</span>: 
+                Balance: <span id="preview-balance-val" class="text-white font-bold">₹0.00</span> | 
+                Revenue: <span id="preview-revenue-val" class="text-emerald-400 font-bold">₹0.00</span>
+            </div>
+            <button onclick="updateUserFinancials()" id="ledger-submit-btn" class="mt-3 bg-amber-600 hover:bg-amber-500 text-white font-bold px-4 py-2 rounded-lg text-xs transition cursor-pointer">
+                Apply Ledger Adjustments
+            </button>
+        </div>
+
+        <div class="bg-[#111625] border border-zinc-800 rounded-xl p-5">
+            <h3 class="text-base font-bold text-white mb-3">Pending Verification Streams (UTR Checks)</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-zinc-800 text-zinc-400">
+                            <th class="p-2">User ID</th>
+                            <th class="p-2">Package Name</th>
+                            <th class="p-2">Price</th>
+                            <th class="p-2">UTR Reference</th>
+                            <th class="p-2 text-right">Action Desk</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-table-body" class="divide-y divide-zinc-800/60"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="bg-[#111625] border border-zinc-800 rounded-xl p-5">
+            <h3 class="text-base font-bold text-white mb-3"><i class="fa-solid fa-users text-blue-400 mr-1"></i> Saved Users Database Registry</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-zinc-800 text-zinc-400">
+                            <th class="p-2">User ID</th>
+                            <th class="p-2">Wallet Balance</th>
+                            <th class="p-2">Daily Revenue Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody id="saved-users-body" class="divide-y divide-zinc-800/60"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function verifyGatepass() {
+            const secretGateKey = "scam_op";
+            const inputPass = prompt("Enter Secret Admin Password Gate Token:");
+            
+            if (inputPass === secretGateKey) {
+                const lock = document.getElementById('admin-lockscreen');
+                if (lock) lock.style.display = 'none';
+                initializeCloudSyncData();
+            } else {
+                alert("Access Denied.");
+                window.location.href = "login.html";
+            }
+        }
+
+        async function initializeCloudSyncData() {
+            try {
+                if (typeof pullFromCloudRegistry === "function") {
+                    await pullFromCloudRegistry();
+                }
+            } catch (err) {
+                console.error("Initial cloud data download skipped:", err);
+            }
+            renderAdminPanels();
+        }
+
+        async function refreshAdminDataFromServer() {
+            if (typeof pullFromCloudRegistry === "function") {
+                await pullFromCloudRegistry();
+            }
+            renderAdminPanels();
+        }
+
+        function renderAdminPanels() {
+            const body = document.getElementById('admin-table-body');
+            body.innerHTML = '';
+            let queue = JSON.parse(localStorage.getItem('admin_utr_queue') || '[]');
+
+            if(queue.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-zinc-500 italic">No incoming deposits pending confirmation.</td></tr>`;
+            } else {
+                queue.forEach((item, index) => {
+                    body.innerHTML += `
+                        <tr class="hover:bg-zinc-900/40">
+                            <td class="p-2 text-blue-400 font-mono font-bold">${item.userId}</td>
+                            <td class="p-2 text-zinc-300 font-medium">${item.packageName}</td>
+                            <td class="p-2 text-white font-semibold">₹${item.amount}</td>
+                            <td class="p-2 font-mono text-zinc-400">${item.utr}</td>
+                            <td class="p-2 text-right">
+                                <button onclick="approveRequest(${index})" class="bg-emerald-600 text-white font-bold px-2 py-1 rounded text-[11px] cursor-pointer">Approve</button>
+                                <button onclick="rejectRequest(${index})" class="bg-red-600 text-white font-bold px-2 py-1 rounded text-[11px] cursor-pointer">Deny</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            const usersBody = document.getElementById('saved-users-body');
+            usersBody.innerHTML = '';
+            let savedUsers = JSON.parse(localStorage.getItem('admin_crm_users') || '[]');
+
+            if(savedUsers.length === 0) {
+                usersBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-zinc-500 italic">No user records saved in database yet.</td></tr>`;
+            } else {
+                savedUsers.forEach(uid => {
+                    let bal = parseFloat(localStorage.getItem(`balance_${uid}`) || 0).toFixed(2);
+                    let activePacks = JSON.parse(localStorage.getItem(`packages_${uid}`) || '[]');
+                    let dailyRate = activePacks.reduce((acc, p) => acc + p.daily, 0);
+
+                    usersBody.innerHTML += `
+                        <tr class="hover:bg-zinc-900/40">
+                            <td class="p-2 font-mono text-blue-400 font-bold">${uid}</td>
+                            <td class="p-2 text-white font-semibold">₹${bal}</td>
+                            <td class="p-2 text-emerald-400 font-medium">₹${dailyRate}/day</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        async function approveRequest(idx) {
+            let queue = JSON.parse(localStorage.getItem('admin_utr_queue') || '[]');
+            let record = queue[idx];
+
+            if (typeof pullFromCloudRegistry === "function") await pullFromCloudRegistry();
+
+            let currentBal = parseFloat(localStorage.getItem(`balance_${record.userId}`) || 0);
+            let currentRev = parseFloat(localStorage.getItem(`revenue_${record.userId}`) || 0);
+            let activePackages = JSON.parse(localStorage.getItem(`packages_${record.userId}`) || '[]');
+
+            currentBal += record.dailyRate;
+            currentRev += record.dailyRate;
+
+            activePackages.push({
+                name: record.packageName,
+                daily: record.dailyRate,
+                lastPayoutDate: new Date().toDateString()
+            });
+
+            localStorage.setItem(`balance_${record.userId}`, currentBal.toFixed(2));
+            localStorage.setItem(`revenue_${record.userId}`, currentRev.toFixed(2));
+            localStorage.setItem(`packages_${record.userId}`, JSON.stringify(activePackages));
+
+            let savedUsers = JSON.parse(localStorage.getItem('admin_crm_users') || '[]');
+            if(!savedUsers.includes(record.userId)) {
+                savedUsers.push(record.userId);
+                localStorage.setItem('admin_crm_users', JSON.stringify(savedUsers));
+            }
+
+            localStorage.setItem(`popup_alert_${record.userId}`, "true");
+
+            queue.splice(idx, 1);
+            localStorage.setItem('admin_utr_queue', JSON.stringify(queue));
+            
+            if (typeof uploadToCloudRegistry === "function") await uploadToCloudRegistry();
+            
+            alert("Payment Verified! Balance updated and structural configurations shared globally.");
+            renderAdminPanels();
+        }
+
+        async function rejectRequest(idx) {
+            if (typeof pullFromCloudRegistry === "function") await pullFromCloudRegistry();
+            
+            let queue = JSON.parse(localStorage.getItem('admin_utr_queue') || '[]');
+            queue.splice(idx, 1);
+            localStorage.setItem('admin_utr_queue', JSON.stringify(queue));
+            
+            if (typeof uploadToCloudRegistry === "function") await uploadToCloudRegistry();
+            alert("Transaction Denied.");
+            renderAdminPanels();
+        }
+
+        async function sendGlobalBroadcast() {
+            const msg = document.getElementById('global-broadcast-msg').value.trim();
+            const btn = document.getElementById('broadcast-submit-btn');
+
+            if(!msg) { alert("Please type a message to broadcast."); return; }
+
+            btn.innerText = "Syncing Broadcast...";
+            if (typeof pullFromCloudRegistry === "function") await pullFromCloudRegistry();
+
+            localStorage.setItem('global_admin_notice', msg);
+
+            if (typeof uploadToCloudRegistry === "function") await uploadToCloudRegistry();
+
+            alert("Global broadcast banner updated across all active nodes!");
+            document.getElementById('global-broadcast-msg').value = '';
+            btn.innerText = "Publish Global Broadcast";
+        }
+
+        async function sendTargetedMessage() {
+            const uid = document.getElementById('specific-user-id').value.trim();
+            const msg = document.getElementById('specific-msg').value.trim();
+            const btn = document.getElementById('msg-submit-btn');
+            
+            if(!uid || !msg) { alert("Please complete all messaging data parameters."); return; }
+            
+            btn.innerText = "Syncing Cloud Message...";
+            if (typeof pullFromCloudRegistry === "function") await pullFromCloudRegistry();
+
+            localStorage.setItem(`notice_${uid}`, msg);
+            
+            if (typeof uploadToCloudRegistry === "function") await uploadToCloudRegistry();
+            
+            alert(`Custom message pushed explicitly to user screen profile: ${uid}`);
+            document.getElementById('specific-user-id').value = '';
+            document.getElementById('specific-msg').value = '';
+            btn.innerText = "Deliver Direct Message";
+        }
+
+        function checkUserBalance() {
+            const uid = document.getElementById('balance-user-id').value.trim();
+            if(!uid) { alert("Please input a User ID to fetch."); return; }
+            
+            const bal = parseFloat(localStorage.getItem(`balance_${uid}`) || 0).toFixed(2);
+            const rev = parseFloat(localStorage.getItem(`revenue_${uid}`) || 0).toFixed(2);
+            
+            document.getElementById('preview-user').innerText = uid;
+            document.getElementById('preview-balance-val').innerText = "₹" + bal;
+            document.getElementById('preview-revenue-val').innerText = "₹" + rev;
+            document.getElementById('balance-preview-box').classList.remove('hidden');
+        }
+
+        async function updateUserFinancials() {
+            const uid = document.getElementById('balance-user-id').value.trim();
+            const addBal = parseFloat(document.getElementById('balance-amount').value) || 0;
+            const addRev = parseFloat(document.getElementById('revenue-amount').value) || 0;
+            const btn = document.getElementById('ledger-submit-btn');
+
+            if(!uid) { alert("Please input a valid Target User ID."); return; }
+
+            btn.innerText = "Pushing Financial Replications...";
+
+            if (typeof pullFromCloudRegistry === "function") await pullFromCloudRegistry();
+
+            let currentBal = parseFloat(localStorage.getItem(`balance_${uid}`) || 0);
+            let currentRev = parseFloat(localStorage.getItem(`revenue_${uid}`) || 0);
+
+            currentBal += addBal;
+            currentRev += addRev;
+
+            localStorage.setItem(`balance_${uid}`, currentBal.toFixed(2));
+            localStorage.setItem(`revenue_${uid}`, currentRev.toFixed(2));
+
+            let savedUsers = JSON.parse(localStorage.getItem('admin_crm_users') || '[]');
+            if(!savedUsers.includes(uid)) {
+                savedUsers.push(uid);
+                localStorage.setItem('admin_crm_users', JSON.stringify(savedUsers));
+            }
+
+            if (typeof uploadToCloudRegistry === "function") await uploadToCloudRegistry();
+
+            alert(`Updated variables for ${uid} successfully!\nAdded Bal: ₹${addBal}\nAdded Rev: ₹${addRev}`);
+            
+            document.getElementById('balance-amount').value = '';
+            document.getElementById('revenue-amount').value = '';
+            document.getElementById('balance-preview-box').classList.add('hidden');
+            btn.innerText = "Apply Ledger Adjustments";
+            renderAdminPanels();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            verifyGatepass();
+        });
+    </script>
+</body>
+</html>
